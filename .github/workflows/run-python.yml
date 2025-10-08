@@ -1,10 +1,17 @@
 name: Run Python Script and Auto Release
 
 on:
+  # Trigger the workflow on both push and pull request
   push:
     branches:
-      - master
+      - main
   pull_request:
+    branches:
+      - main  # Run tests when PRs target main branch
+    types: [opened, synchronize, reopened]  # Optional: specific PR events
+
+permissions:
+  contents: write
 
 jobs:
   run-python:
