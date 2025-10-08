@@ -50,7 +50,7 @@ jobs:
   release:
     needs: run-python
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Checkout code
