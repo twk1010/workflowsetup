@@ -1,0 +1,36 @@
+name: Run Python Script
+
+on:
+  push:                # Runs on every push
+  pull_request:        # Also runs for pull requests
+
+jobs:
+  run-python:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout your code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install dependencies (if you have requirements.txt)
+      - name: Install dependencies
+        if: exists('requirements.txt')
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run your main.py script
+      - name: Execute main.py
+        run: python main.py
+
+      # Step 5: Optional - Confirm success
+      - name: Success message
+        if: ${{ success() }}
+        run: echo "✅ main.py executed successfully!"
