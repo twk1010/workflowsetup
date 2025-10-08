@@ -1,4 +1,5 @@
 # main.py
+import numpy
 
 def add(a, b):
     """Simple function to add two numbers"""
