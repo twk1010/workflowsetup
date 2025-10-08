@@ -1,15 +1,17 @@
-name: Run Python Script
+name: Run Python Script and Auto Release
 
 on:
-  push:                # Runs on every push
-  pull_request:        # Also runs for pull requests
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   run-python:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout your code
+      # Step 1: Checkout your repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -17,13 +19,62 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      # Step 3: Run your main.py script
-      - name: Execute main.py
-        run: python main.py
+      # Step 3: Install dependencies if requirements.txt exists
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            echo "Installing dependencies..."
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found, skipping install."
+          fi
 
-      # Step 4: Optional - Confirm success
+      # Step 4: Check if main.py exists, then run it
+      - name: Execute main.py if exists
+        run: |
+          if [ -f main.py ]; then
+            echo "Found main.py — running it now..."
+            python main.py
+          else
+            echo "⚠️ main.py not found, skipping execution."
+          fi
+
+      # Step 5: Success message
       - name: Success message
         if: ${{ success() }}
-        run: echo "✅ main.py executed successfully!"
+        run: echo "✅ Workflow completed successfully!"
+
+  release:
+    needs: run-python
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 1: Get the latest tag and increment version
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $latest_tag"
+          latest_tag_number=${latest_tag#v}
+          IFS='.' read -r major minor patch <<< "$latest_tag_number"
+          patch=$((patch + 1))
+          new_tag="v${major}.${minor}.${patch}"
+          echo "new_tag=$new_tag" >> $GITHUB_OUTPUT
+          echo "Next version: $new_tag"
+
+      # Step 2: Create a GitHub release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.new_tag }}
+          name: "Release ${{ steps.get_tag.outputs.new_tag }}"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
