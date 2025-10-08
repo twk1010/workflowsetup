@@ -1,1 +1,1 @@
-print("Chicken wing")
+print("Chicken wing!")
