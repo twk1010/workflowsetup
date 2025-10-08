@@ -20,14 +20,8 @@ jobs:
           python-version: '3.11'
 
       # Step 3: Run your main.py script
-      - name: Execute main.py if exists
-        run: |
-          if [ -f main.py ]; then
-            echo "Found main.py — running it now..."
-            python main.py
-          else
-            echo "⚠️ main.py not found, skipping execution."
-          fi
+      - name: Execute main.py
+        run: python main.py
 
       # Step 4: Optional - Confirm success
       - name: Success message
